@@ -13,7 +13,7 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.lit
 
 public class HidePassengers {
 
-    public static MinecraftClient client = MinecraftClient.getInstance();
+    private static final MinecraftClient client = MinecraftClient.getInstance();
 
     public static void HidePassengerCommand(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         assert client.player != null;

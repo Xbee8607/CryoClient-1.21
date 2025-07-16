@@ -15,7 +15,7 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*;
 
 public class BoatYaw {
 
-    public static MinecraftClient client = MinecraftClient.getInstance();
+    private static final MinecraftClient client = MinecraftClient.getInstance();
 
     public static void BoatYawCommand(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         if (client == null || client.player == null) return;

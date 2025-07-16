@@ -1,7 +1,9 @@
 package net.hockeyfan17.cryoclient;
 
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.hockeyfan17.cryoclient.features.BoatYaw;
+import net.hockeyfan17.cryoclient.features.DemocracyChat;
 import net.hockeyfan17.cryoclient.features.HidePassengers;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -36,6 +38,19 @@ public class Client implements ClientModInitializer {
         // Hide Passengers Command //
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             HidePassengers.HidePassengerCommand(dispatcher);
+        });
+
+
+        // Democracy Chat Command //
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            DemocracyChat.DemocracyChatCommand(dispatcher);
+        });
+
+
+        ClientReceiveMessageEvents.ALLOW_GAME.register((message, sender) -> {
+            String rawMessage = message.getString();
+            DemocracyChat.democracyChatFunction(rawMessage);
+            return true;
         });
     }
 }
