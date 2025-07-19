@@ -18,6 +18,7 @@ public class CryoConfig {
     public boolean boatYawToggle;
     public boolean hidePassengersToggle;
     public boolean democracyChatToggle;
+    public boolean pitReminderToggle;
 
     public void load() {
         try {
@@ -26,6 +27,7 @@ public class CryoConfig {
                 this.boatYawToggle = loaded.boatYawToggle;
                 this.hidePassengersToggle = loaded.hidePassengersToggle;
                 this.democracyChatToggle = loaded.democracyChatToggle;
+                this.pitReminderToggle = loaded.pitReminderToggle;
             } else {
                 save();
             }

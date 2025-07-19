@@ -2,12 +2,15 @@ package net.hockeyfan17.cryoclient;
 
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.hockeyfan17.cryoclient.features.BoatYaw;
 import net.hockeyfan17.cryoclient.features.DemocracyChat;
 import net.hockeyfan17.cryoclient.features.HidePassengers;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.hockeyfan17.cryoclient.features.PitReminder;
+
 
 public class Client implements ClientModInitializer {
     @Override
@@ -46,10 +49,16 @@ public class Client implements ClientModInitializer {
             DemocracyChat.DemocracyChatCommand(dispatcher);
         });
 
+        // Pit Reminder Command //
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            PitReminder.PitReminderCommand(dispatcher);
+        });
+
 
         ClientReceiveMessageEvents.ALLOW_GAME.register((message, sender) -> {
             String rawMessage = message.getString();
             DemocracyChat.democracyChatFunction(rawMessage);
+            if(CryoConfig.INSTANCE.pitReminderToggle) {PitReminder.pitReminderFunction(rawMessage);}
             return true;
         });
     }
