@@ -6,13 +6,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.hockeyfan17.cryoclient.CryoConfig;
 import net.hockeyfan17.cryoclient.Main;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import java.util.List;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,13 +18,13 @@ import static org.joml.Math.floor;
 
 public class PitReminder {
     private static final MinecraftClient client = MinecraftClient.getInstance();
-    private static final Map<String, int[]> trackStats = new HashMap<>();
+    private static final Map<String, int[]> trackStats = new HashMap<>();// milliseconds
+    private static int lapsCompleted;
+    private static int pitsCompleted;
+    private static int raceLaps;
+    private static int racePits;
     private static long messageStartTime = -1;
-    private static final long fadeDuration = 3000; // milliseconds
-    private static int lapsCompleted = 0;
-    private static int pitsCompleted = 0;
-    private static int raceLaps = 0;
-    private static int racePits = 0;
+    private static final long fadeDuration = 5000; // Milliseconds
 
     public static void PitReminderCommand(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         assert client.player != null;
@@ -54,34 +51,29 @@ public class PitReminder {
         }
     }
     public static void pitReminderFunction(String rawMessage) {
-        if (raceJoinFunction(rawMessage)) {
-
-        }
         trackListCounting(rawMessage);
+        raceJoinFunction(rawMessage);
         if(raceLapCounting(rawMessage)) {
-            showPitNeeded();
+            messageStartTime = System.currentTimeMillis(); // Opens hud
         }
     }
 
 
-    private static boolean raceJoinFunction(String rawMessage) {
+    private static void raceJoinFunction(String rawMessage) {
         if(rawMessage.contains("--> Click to join a race on")){
             try{
-
                 String[] Array = rawMessage.split("Click to join a race on", 2);
                 String[] Array1 = Array[1].split("\\(", 2);
                 String trackName = Array1[0].replaceAll("\\s+", "").toLowerCase();
                 int[] finalTrackData = trackStats.get(trackName);
-                raceLaps = (int) floor((float) finalTrackData[0] / finalTrackData[2]) - 1; // Starting lap not counted
+                raceLaps = (int) floor((float) finalTrackData[0] / finalTrackData[2]); // Starting lap not counted
                 racePits = (int) floor((float) finalTrackData[1] / finalTrackData[2]);
                 lapsCompleted = 0;
                 pitsCompleted = 0;
                 trackStats.clear();
             }catch(ArrayIndexOutOfBoundsException e) {
-                System.err.println("Invalid number format in rawMessage: " + rawMessage);
             }
         }
-        return true;
     }
     private static void trackListCounting(String rawMessage) {
         if (rawMessage.contains("just voted for a race on")) {
@@ -109,32 +101,27 @@ public class PitReminder {
     private static boolean raceLapCounting(String rawMessage){
         if(MinecraftClient.getInstance().player == null) return false; // fallback
         String playerName = MinecraftClient.getInstance().player.getName().getString();
-        int lapsRemaining = 0;
-        int pitsRemaining;
+
+        // If player does pit //
         if(rawMessage.contains(playerName + " completed pit") || rawMessage.contains(playerName + " has completed PigStop")){
             pitsCompleted++;
-        }
-        if(rawMessage.contains(playerName + " new fastest lap") || rawMessage.contains("You finished lap in")){
-            lapsRemaining = raceLaps - lapsCompleted;
-            pitsRemaining = racePits - pitsCompleted;
-            lapsCompleted++;
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal(lapsRemaining + " laps, " + pitsRemaining + " pits"));
-            if(pitsRemaining == 0){
-                return false;
-            }
-            if(lapsRemaining - 1 == pitsRemaining){
-                MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("Pit detected"));
+            if(findIfPit()){
                 return true;
-            } else{
-                return false;
             }
         }
 
+        // If player finished lap //
+        if(rawMessage.contains(playerName + " new fastest lap") || rawMessage.contains("You finished lap in")){
+            lapsCompleted++;
+            if(findIfPit()){
+                return true;
+            }
+        }
 
         return false;
     }
 
-    private static void showPitNeeded(){
+    public static void PitReminderHud(){
         HudRenderCallback.EVENT.register(( drawContext, tickDelta) -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client == null || client.player == null) return;
@@ -152,14 +139,14 @@ public class PitReminder {
             float alpha = 1.0f - (elapsed / (float) fadeDuration);
             alpha = Math.max(0f, Math.min(1f, alpha)); // Clamp between 0 and 1
 
-            // Scale alpha into ARGB color (e.g., white with fade)
+            // Scale alpha into ARGB
             int alphaInt = (int) (alpha * 255);
             int color = (alphaInt << 24) | 0xFF0000; // 0xAARRGGBB
 
             String displayText = "Pit Needed!";
             int screenWidth = client.getWindow().getScaledWidth();
             int screenHeight = client.getWindow().getScaledHeight();
-            float scale = 2.0f; // Change this to 0.5f, 1.5f, 3.0f etc.
+            float scale = 2.5f; // Scale of text
 
             drawContext.getMatrices().push(); // Save the current state
 
@@ -173,5 +160,18 @@ public class PitReminder {
 
             drawContext.drawTextWithShadow(client.textRenderer, displayText, x, y, color);
         });
+    }
+
+    private static boolean findIfPit(){
+        int lapsRemaining = raceLaps - lapsCompleted;
+        int pitsRemaining = racePits - pitsCompleted;
+        if(pitsRemaining == 0){
+            return false;
+        }
+        if(lapsRemaining - 1 == pitsRemaining){
+            return true;
+        } else{
+            return false;
+        }
     }
 }

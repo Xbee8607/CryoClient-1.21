@@ -3,6 +3,7 @@ package net.hockeyfan17.cryoclient;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.hockeyfan17.cryoclient.features.BoatYaw;
 import net.hockeyfan17.cryoclient.features.DemocracyChat;
 import net.hockeyfan17.cryoclient.features.HidePassengers;
@@ -10,11 +11,19 @@ import net.hockeyfan17.cryoclient.features.HidePassengers;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.hockeyfan17.cryoclient.features.PitReminder;
+import net.minecraft.client.MinecraftClient;
+
 
 
 public class Client implements ClientModInitializer {
+
+
     @Override
     public void onInitializeClient() {
+
+
+        BoatYaw.BoatYawHud();
+        PitReminder.PitReminderHud();
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             CryoConfig.INSTANCE.load();
@@ -31,7 +40,6 @@ public class Client implements ClientModInitializer {
             BoatYaw.BoatYawCommand(dispatcher);
         });
 
-        BoatYaw.BoatYawHud();
 
         // RotationsNeeded Command //
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
