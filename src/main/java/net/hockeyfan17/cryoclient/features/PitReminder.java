@@ -61,39 +61,31 @@ public class PitReminder {
 
     private static void raceJoinFunction(String rawMessage) {
         if(rawMessage.contains("--> Click to join a race on")){
-            try{
-                String[] Array = rawMessage.split("Click to join a race on", 2);
-                String[] Array1 = Array[1].split("\\(", 2);
-                String trackName = Array1[0].replaceAll("\\s+", "").toLowerCase();
-                int[] finalTrackData = trackStats.get(trackName);
-                raceLaps = (int) floor((float) finalTrackData[0] / finalTrackData[2]); // Starting lap not counted
-                racePits = (int) floor((float) finalTrackData[1] / finalTrackData[2]);
-                lapsCompleted = 0;
-                pitsCompleted = 0;
-                trackStats.clear();
-            }catch(ArrayIndexOutOfBoundsException e) {
-            }
+            String[] Array = rawMessage.split("Click to join a race on", 2);
+            String[] Array1 = Array[1].split("\\(", 2);
+            String trackName = Array1[0].replaceAll("\\s+", "").toLowerCase();
+            int[] finalTrackData = trackStats.get(trackName);
+            raceLaps = (int) floor((float) finalTrackData[0] / finalTrackData[2]); // Starting lap not counted
+            racePits = (int) floor((float) finalTrackData[1] / finalTrackData[2]);
+            lapsCompleted = 0;
+            pitsCompleted = 0;
+            trackStats.clear();
         }
     }
     private static void trackListCounting(String rawMessage) {
         if (rawMessage.contains("just voted for a race on")) {
             String[] rawMessageArray = rawMessage.split(" ", 13);
-            try {
-                String messageTrack = rawMessageArray[7].toLowerCase().replace(" ", "");
-                int messageLaps = Integer.parseInt(rawMessageArray[9].replace(" ", ""));
-                int messagePits = Integer.parseInt(rawMessageArray[11].replace(" ", ""));
-                // Update or initialize track stats
-
-                trackStats.putIfAbsent(messageTrack, new int[]{0, 0, 0});
-                int[] stats = trackStats.get(messageTrack);
-                stats[0] += messageLaps;
-                stats[1] += messagePits;
-                stats[2]++; // vote count
+            String messageTrack = rawMessageArray[7].toLowerCase().replace(" ", "");
+            int messageLaps = Integer.parseInt(rawMessageArray[9].replace(" ", ""));
+            int messagePits = Integer.parseInt(rawMessageArray[11].replace(" ", ""));
 
 
-            } catch(ArrayIndexOutOfBoundsException e) {
-                System.err.println("Invalid number format in rawMessage: " + rawMessage);
-            }
+            trackStats.putIfAbsent(messageTrack, new int[]{0, 0, 0});
+            int[] stats = trackStats.get(messageTrack);
+            stats[0] += messageLaps; // Laps Count
+            stats[1] += messagePits; // Pit Count
+            stats[2]++; // vote count
+
         }
     }
 
@@ -105,17 +97,13 @@ public class PitReminder {
         // If player does pit //
         if(rawMessage.contains(playerName + " completed pit") || rawMessage.contains(playerName + " has completed PigStop")){
             pitsCompleted++;
-            if(findIfPit()){
-                return true;
-            }
+            return findIfPit();
         }
 
         // If player finished lap //
         if(rawMessage.contains(playerName + " new fastest lap") || rawMessage.contains("You finished lap in")){
             lapsCompleted++;
-            if(findIfPit()){
-                return true;
-            }
+            return findIfPit();
         }
 
         return false;
