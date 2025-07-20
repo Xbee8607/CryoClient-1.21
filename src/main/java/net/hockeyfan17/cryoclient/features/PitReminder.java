@@ -121,6 +121,7 @@ public class PitReminder {
         return false;
     }
 
+    // Setup Visuals for PitReminder
     public static void PitReminderHud(){
         HudRenderCallback.EVENT.register(( drawContext, tickDelta) -> {
             MinecraftClient client = MinecraftClient.getInstance();
