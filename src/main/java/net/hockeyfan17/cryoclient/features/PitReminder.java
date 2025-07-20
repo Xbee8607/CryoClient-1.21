@@ -126,11 +126,6 @@ public class PitReminder {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client == null || client.player == null) return;
 
-            // Trigger the message display — just for testing
-            if (messageStartTime == -1) {
-                messageStartTime = System.currentTimeMillis(); // start the fade
-            }
-
             // Compute how long it's been
             long elapsed = System.currentTimeMillis() - messageStartTime;
             if (elapsed > fadeDuration) return; // Done fading
