@@ -1,10 +1,11 @@
 package net.hockeyfan17.cryoclient.features;
 
 import com.mojang.brigadier.CommandDispatcher;
+import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.hockeyfan17.cryoclient.CryoConfig;
 import net.hockeyfan17.cryoclient.Main;
+import net.hockeyfan17.cryoclient.modConfig.ModConfigScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.text.Text;
@@ -14,6 +15,7 @@ import java.util.List;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*;
 
 public class BoatYaw {
+    static ModConfigScreen Config = AutoConfig.getConfigHolder(ModConfigScreen.class).getConfig();
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
@@ -26,11 +28,11 @@ public class BoatYaw {
             dispatcher.register(literal(cc)
                     .then(literal("BoatYaw")
                             .executes(context -> {
-                                CryoConfig.INSTANCE.boatYawToggle = !CryoConfig.INSTANCE.boatYawToggle;
+                                Config.boatYawToggle = !Config.boatYawToggle;
                                 Text message = Main.CryoClientName.copy()
                                         .append("Boat Yaw ").formatted(Formatting.GRAY)
-                                        .append(Text.literal(CryoConfig.INSTANCE.boatYawToggle ? "Enabled" : "Disabled")
-                                                .formatted(CryoConfig.INSTANCE.boatYawToggle ? Formatting.GREEN : Formatting.RED));
+                                        .append(Text.literal(Config.boatYawToggle ? "Enabled" : "Disabled")
+                                                .formatted(Config.boatYawToggle ? Formatting.GREEN : Formatting.RED));
                                     client.player.sendMessage(message);
                                 return 1;
                             })
@@ -59,7 +61,7 @@ public class BoatYaw {
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             MinecraftClient client = MinecraftClient.getInstance();
 
-            if (CryoConfig.INSTANCE.boatYawToggle && client.player != null && client.player.getVehicle() instanceof BoatEntity boat) {
+            if (Config.boatYawToggle && client.player != null && client.player.getVehicle() instanceof BoatEntity boat) {
                 double yaw = getBoatYaw(boat);
                 String displayText = String.format("%.4f", yaw);
                 int screenWidth = client.getWindow().getScaledWidth();

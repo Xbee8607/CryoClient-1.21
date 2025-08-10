@@ -1,10 +1,11 @@
 package net.hockeyfan17.cryoclient.features;
 
 import com.mojang.brigadier.CommandDispatcher;
+import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.hockeyfan17.cryoclient.CryoConfig;
 import net.hockeyfan17.cryoclient.Main;
+import net.hockeyfan17.cryoclient.modConfig.ModConfigScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -17,6 +18,7 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.lit
 import static org.joml.Math.floor;
 
 public class PitReminder {
+    static ModConfigScreen Config = AutoConfig.getConfigHolder(ModConfigScreen.class).getConfig();
     private static final MinecraftClient client = MinecraftClient.getInstance();
     private static final Map<String, int[]> trackStats = new HashMap<>();// milliseconds
     private static int lapsCompleted;
@@ -38,11 +40,11 @@ public class PitReminder {
                     })
                     .then(literal("PitReminders")
                             .executes(context -> {
-                                CryoConfig.INSTANCE.pitReminderToggle = !CryoConfig.INSTANCE.pitReminderToggle;
+                                Config.pitReminderToggle = !Config.pitReminderToggle;
                                 Text message = Main.CryoClientName.copy()
                                         .append(Text.literal("PitReminder ").formatted(Formatting.GRAY))
-                                        .append(Text.literal(CryoConfig.INSTANCE.pitReminderToggle ? "Enabled" : "Disabled")
-                                                .formatted(CryoConfig.INSTANCE.pitReminderToggle ? Formatting.GREEN : Formatting.RED));
+                                        .append(Text.literal(Config.pitReminderToggle ? "Enabled" : "Disabled")
+                                                .formatted(Config.pitReminderToggle ? Formatting.GREEN : Formatting.RED));
                                 client.player.sendMessage(message);
                                 return 1;
                             })
@@ -51,10 +53,12 @@ public class PitReminder {
         }
     }
     public static void pitReminderFunction(String rawMessage) {
-        trackListCounting(rawMessage);
-        raceJoinFunction(rawMessage);
-        if(raceLapCounting(rawMessage)) {
-            messageStartTime = System.currentTimeMillis(); // Opens hud
+        if(Config.pitReminderToggle){
+            trackListCounting(rawMessage);
+            raceJoinFunction(rawMessage);
+            if(raceLapCounting(rawMessage)) {
+                messageStartTime = System.currentTimeMillis(); // Opens hud
+            }
         }
     }
 
@@ -152,10 +156,6 @@ public class PitReminder {
         if(pitsRemaining == 0){
             return false;
         }
-        if(lapsRemaining - 1 == pitsRemaining){
-            return true;
-        } else{
-            return false;
-        }
+        return lapsRemaining - 1 == pitsRemaining;
     }
 }

@@ -1,32 +1,26 @@
 package net.hockeyfan17.cryoclient.features;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import me.shedaniel.autoconfig.AutoConfig;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.hockeyfan17.cryoclient.CryoConfig;
 import net.hockeyfan17.cryoclient.Main;
+import net.hockeyfan17.cryoclient.modConfig.ModConfigFile;
+import net.hockeyfan17.cryoclient.modConfig.ModConfigScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import java.io.*;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
 public class DemocracyChat {
+    static ModConfigScreen Config = AutoConfig.getConfigHolder(ModConfigScreen.class).getConfig();
     private static boolean messageTypeToggle = false;
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
@@ -54,11 +48,11 @@ public class DemocracyChat {
                     .then(literal("DemocracyMessage")
                             .then(literal("Toggle")
                                     .executes(context -> {
-                                        CryoConfig.INSTANCE.democracyChatToggle = !CryoConfig.INSTANCE.democracyChatToggle;
+                                        Config.democracyChatToggle = !Config.democracyChatToggle;
                                         Text message = Main.CryoClientName.copy()
                                                 .append(Text.literal("Democracy Messages ").formatted(Formatting.GRAY))
-                                                .append(Text.literal(CryoConfig.INSTANCE.democracyChatToggle ? "Enabled" : "Disabled")
-                                                        .formatted(CryoConfig.INSTANCE.democracyChatToggle ? Formatting.GREEN : Formatting.RED));
+                                                .append(Text.literal(Config.democracyChatToggle ? "Enabled" : "Disabled")
+                                                        .formatted(Config.democracyChatToggle ? Formatting.GREEN : Formatting.RED));
                                         client.player.sendMessage(message);
                                         return 1;
                                     }))
@@ -87,9 +81,9 @@ public class DemocracyChat {
                                     .then(argument("track", StringArgumentType.word())
                                             .executes(context -> {
                                                 String trackName = StringArgumentType.getString(context, "track").toLowerCase();
-                                                if(!trackList.contains(trackName)){
-                                                    trackList.add(trackName);
-                                                    saveTrackList();
+                                                if(!ModConfigFile.trackList.contains(trackName)){
+                                                    ModConfigFile.trackList.add(trackName);
+                                                    ModConfigFile.saveTrackList();
                                                     client.player.sendMessage(Main.CryoClientName.copy()
                                                             .append(Text.literal(trackName + " added!!")).formatted(Formatting.GRAY));
                                                 }else{
@@ -102,13 +96,13 @@ public class DemocracyChat {
                                     .then(argument("track", StringArgumentType.word())
                                             .executes(context -> {
                                                 String trackName = StringArgumentType.getString(context, "track").toLowerCase();
-                                                Iterator<String> iterator = trackList.iterator();
+                                                Iterator<String> iterator = ModConfigFile.trackList.iterator();
                                                 boolean removed = false;
 
                                                 while(iterator.hasNext()) {
                                                     if(Objects.equals(iterator.next(), trackName)){
                                                         iterator.remove();
-                                                        saveTrackList();
+                                                        ModConfigFile.saveTrackList();
                                                         client.player.sendMessage(Main.CryoClientName.copy()
                                                                 .append(Text.literal(trackName + " has been removed!")).formatted(Formatting.GRAY));
                                                         removed = true;
@@ -124,13 +118,13 @@ public class DemocracyChat {
                                             })))
                             .then(literal("ShowTrack")
                                     .executes(context -> {
-                                        if(trackList.isEmpty()){
+                                        if(ModConfigFile.trackList.isEmpty()){
                                             client.player.sendMessage(Main.CryoClientName.copy()
                                                     .append(Text.literal("Track list is empty.").formatted(Formatting.GRAY)));
                                         }else{
                                             Text message = Main.CryoClientName.copy()
                                                     .append(Text.literal("Current Tracks:\n").formatted(Formatting.AQUA));
-                                            for (String track : trackList) {
+                                            for (String track : ModConfigFile.trackList) {
                                                 message = message.copy().append(Text.literal("- " + track + "\n").formatted(Formatting.GRAY));
                                             }
                                             client.player.sendMessage(message);
@@ -138,11 +132,11 @@ public class DemocracyChat {
                                         return 1;
                                     }))
                             .executes(context -> {
-                                CryoConfig.INSTANCE.democracyChatToggle = !CryoConfig.INSTANCE.democracyChatToggle;
+                                Config.democracyChatToggle = !Config.democracyChatToggle;
                                 Text message = Main.CryoClientName.copy()
                                         .append(Text.literal("Democracy Messages ").formatted(Formatting.GRAY))
-                                        .append(Text.literal(CryoConfig.INSTANCE.democracyChatToggle ? "Enabled" : "Disabled")
-                                                .formatted(CryoConfig.INSTANCE.democracyChatToggle ? Formatting.GREEN : Formatting.RED));
+                                        .append(Text.literal(Config.democracyChatToggle ? "Enabled" : "Disabled")
+                                                .formatted(Config.democracyChatToggle ? Formatting.GREEN : Formatting.RED));
                                 client.player.sendMessage(message);
                                 return 1;
                             }));
@@ -150,15 +144,15 @@ public class DemocracyChat {
             dispatcher.register(root);
         }
 
-        loadTrackList();
+        ModConfigFile.loadTrackList();
     }
     public static void democracyChatFunction(String rawMessage){
-        if (CryoConfig.INSTANCE.democracyChatToggle && rawMessage.contains("--> Click to join a race on")) {
+        if (Config.democracyChatToggle && rawMessage.contains("--> Click to join a race on")) {
             String[] Array = rawMessage.split("Click to join a race on", 2);
             String[] Array1 = Array[1].split("\\(", 2);
             String trackName = Array1[0].replaceAll("\\s+", "").toLowerCase();
 
-            for(String track : trackList) {
+            for(String track : ModConfigFile.trackList) {
                 if(Objects.equals(track, trackName)) {
                     if(messageTypeToggle){
                         Objects.requireNonNull(client.getNetworkHandler()).sendChatMessage(messageType2(Array1[0]));
@@ -169,35 +163,6 @@ public class DemocracyChat {
                     break;
                 }
             }
-        }
-    }
-    private static final List<String> trackList = new ArrayList<>();
-    private static final Path TRACK_FILE = Path.of("config/trackfile.json");
-    private static final Gson GSON = new Gson();
-
-    private static void loadTrackList() {
-        if (!Files.exists(TRACK_FILE)) {
-            client.inGameHud.getChatHud().addMessage(Text.literal("File does not exist"));
-            return;
-        }
-        try (Reader reader = new FileReader(TRACK_FILE.toFile())) {
-            Type listType = new TypeToken<List<String>>() {}.getType();
-            List<String> loaded = GSON.fromJson(reader, listType);
-            trackList.clear();
-            if (loaded != null) trackList.addAll(loaded);
-        } catch (IOException e) {
-            client.inGameHud.getChatHud().addMessage(Text.literal("Friend list could not be loaded"));
-        }
-    }
-
-    private static void saveTrackList() {
-        try {
-            Files.createDirectories(TRACK_FILE.getParent());
-            try (Writer writer = new FileWriter(TRACK_FILE.toFile())) {
-                GSON.toJson(trackList, writer);
-            }
-        } catch (IOException e) {
-            client.inGameHud.getChatHud().addMessage(Text.literal("File could not be saved"));
         }
     }
 }

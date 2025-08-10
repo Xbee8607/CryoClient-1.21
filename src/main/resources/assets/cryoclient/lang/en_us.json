@@ -1,0 +1,12 @@
+{
+  "text.autoconfig.cryoclient.title": "CryoClient!",
+  "text.autoconfig.cryoclient.option.boatYawToggle": "Boat Yaw",
+  "text.autoconfig.cryoclient.option.boatYawToggle.@Tooltip": "Turns on boat yaw",
+  "text.autoconfig.cryoclient.option.hidePassengersToggle": "Hide Passengers",
+  "text.autoconfig.cryoclient.option.hidePassengersToggle.@Tooltip": "Hides passengers while in a boat",
+  "text.autoconfig.cryoclient.option.democracyChatToggle": "Democracy Chat",
+  "text.autoconfig.cryoclient.option.democracyChatToggle.@Tooltip": "Sends the democracy copypasta",
+  "text.autoconfig.cryoclient.option.pitReminderToggle": "Pit Reminder",
+  "text.autoconfig.cryoclient.option.pitReminderToggl.@Tooltip": "Reminds you when to pit"
+
+}
